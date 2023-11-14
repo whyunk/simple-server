@@ -29,7 +29,7 @@ public class ConfigurationManager {
         try {
             fileReader = new FileReader(filePath);
         } catch (FileNotFoundException e) {
-            throw new HttpConfifurationException(e);
+            throw new HttpConfigurationException(e);
         }
         StringBuffer sb = new StringBuffer();
         int i;
@@ -38,18 +38,18 @@ public class ConfigurationManager {
                 sb.append((char) i);
             }
         } catch (IOException e) {
-            throw new HttpConfifurationException(e);
+            throw new HttpConfigurationException(e);
         }
         JsonNode conf = null;
         try {
             conf = Json.parse(sb.toString());
         } catch (JsonProcessingException e) {
-            throw new HttpConfifurationException("Error parsing the Configuration File", e);
+            throw new HttpConfigurationException("Error parsing the Configuration File", e);
         }
         try {
             myCurrentConfiguration = Json.fromJson(conf, Configuration.class);
         } catch (JsonProcessingException e) {
-            throw new HttpConfifurationException("Error parsing the Configuration file, internal", e);
+            throw new HttpConfigurationException("Error parsing the Configuration file, internal", e);
         }
 
     }
@@ -59,7 +59,7 @@ public class ConfigurationManager {
      */
     public Configuration getCurrentConfiguration() {
         if (myCurrentConfiguration == null) {
-            throw new HttpConfifurationException("No Current Configuration Set.");
+            throw new HttpConfigurationException("No Current Configuration Set.");
         }
         return myCurrentConfiguration;
     }
