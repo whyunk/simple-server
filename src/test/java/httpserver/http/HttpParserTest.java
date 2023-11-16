@@ -1,6 +1,7 @@
 package httpserver.http;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -29,22 +30,111 @@ class HttpParserTest {
         } catch (HttpParsingException e) {
             fail(e);
         }
-
+        assertNotNull(request);
         assertEquals(HttpMethod.GET, request.getMethod());
+        assertEquals("/", request.getRequestTarget());
+        assertEquals("HTTP/1.1",request.getOriginalHttpVersion());
+        assertEquals(HttpVersion.HTTP_1_1,request.getBestCompatibleHttpVersion());
 
     }
 
     @Test
-    void parseHttpRequestBadMethod() {
+    @DisplayName("wrong http method")
+    void parseHttpRequestBadMethod1() {
         HttpRequest request = null;
         try {
-            request = httpParser.parserHttpRequest(generateBadTestCase());
+            request = httpParser.parserHttpRequest(generateBadTestCase1());
             fail();
         } catch (HttpParsingException e) {
             assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED,e.getErrorCode());
         }
+    }
 
+    @Test
+    @DisplayName("long and wrong http method")
+    void parseHttpRequestBadMethod2() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase2());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED,e.getErrorCode());
+        }
+    }
 
+    @Test
+    @DisplayName("invalid start line format")
+    void parseHttpRequestBadMethod3() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase3());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST,e.getErrorCode());
+        }
+    }
+
+    @Test
+    @DisplayName("empty request line")
+    void parseHttpRequestBadMethod4() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase4());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST,e.getErrorCode());
+        }
+    }
+
+    @Test
+    @DisplayName("only carriage return. no LF")
+    void parseHttpRequestBadMethod5() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase5());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST,e.getErrorCode());
+        }
+    }
+
+    @Test
+    @DisplayName("bad http version")
+    void parseHttpRequestBadMethod6() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase6());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST,e.getErrorCode());
+        }
+    }
+
+    @Test
+    @DisplayName("unsupported http version")
+    void parseHttpRequestBadMethod7() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase7());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.SERVER_ERROR_505_HTTP_VERSION_NOT_SUPPORTED,e.getErrorCode());
+        }
+    }
+
+    @Test
+    @DisplayName("higher http version")
+    void parseHttpRequestBadMethod8() {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parserHttpRequest(generateBadTestCase8());
+            assertNotNull(request);
+            assertEquals(HttpVersion.HTTP_1_1,request.getBestCompatibleHttpVersion());
+            assertEquals("HTTP/1.3",request.getOriginalHttpVersion());
+        } catch (HttpParsingException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     private InputStream generateValidTestCase() {
@@ -75,8 +165,120 @@ class HttpParserTest {
         return inputStream;
     }
 
-    private InputStream generateBadTestCase() {
+    private InputStream generateBadTestCase1() {
         String rawData = "GeT / HTTP/1.1\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase2() {
+        String rawData = "GETTTTT / HTTP/1.1\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase3() {
+        String rawData = "GET / aaa HTTP/1.1\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase4() {
+        String rawData = "\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase5() {
+        String rawData = "GET / HTTP/1.1\r" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase6() {
+        String rawData = "GET / HTP/1.1\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase7() {
+        String rawData = "GET / HTTP/2.3\r\n" +
+                "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
+                "080\r\n" +
+                "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
+                "\r\n" ;
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCase8() {
+        String rawData = "GET / HTTP/1.3\r\n" +
                 "Host: localhost:816:11:14.327 [Thread-0] INFO httpserver.core.ServerListenerThread --  * Connection accepted: /0:0:0:0:0:0:0:1\r\n" +
                 "080\r\n" +
                 "Accept-Language: ko,en-US;q=0.9,en;q=0.8\r\n" +
